@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import OpcionesPanel from "./components/OpcionesPanel";
 import { FONDOS } from "./fondos";
 import { useOpciones } from "./opciones";
@@ -10,19 +11,13 @@ import LoginPage from "./pages/LoginPage";
 const ES_ESCRITORIO = "(min-width: 768px)";
 
 function App() {
-
   const [usuario, setUsuario] = useState(null);
-  const [vista, setVista] = useState("inicio");
+  const navigate = useNavigate();
   const [opciones, setOpciones] = useOpciones();
- 
+
   const [sidebarAbierto, setSidebarAbierto] = useState(
     () => window.matchMedia(ES_ESCRITORIO).matches,
   );
-
-  function cambiarVista(nuevaVista) {
-    setVista(nuevaVista);
-    cerrarEnMovil();
-  }
 
   function cerrarEnMovil() {
     if (!window.matchMedia(ES_ESCRITORIO).matches) {
@@ -52,26 +47,30 @@ function App() {
       />
       <Sidebar
         usuario={usuario.usuario}
-        vista={vista}
-        onCambiarVista={cambiarVista}
+        onNavegar={cerrarEnMovil}
         onCerrarSesion={() => {
-          setVista("inicio");
           setUsuario(null);
+          navigate("/inicio");
         }}
       />
       <div className="sidebar-backdrop" onClick={cerrarEnMovil} aria-hidden="true" />
 
       <div className="content-wrapper">
-        {vista === "opciones" ? (
-          <main className="contenido">
-            <OpcionesPanel
-              opciones={opciones}
-              onCambiar={(cambios) => setOpciones((actuales) => ({ ...actuales, ...cambios }))}
-            />
-          </main>
-        ) : (
-          <DashboardPage vista={vista} esAdmin={usuario.rol === "Administrador"} />
-        )}
+        <Routes>
+          <Route path="/" element={<Navigate to="/inicio" replace />} />
+          <Route
+            path="/opciones"
+            element={
+              <main className="contenido">
+                <OpcionesPanel
+                  opciones={opciones}
+                  onCambiar={(cambios) => setOpciones((actuales) => ({ ...actuales, ...cambios }))}
+                />
+              </main>
+            }
+          />
+          <Route path="/:vista" element={<DashboardPage esAdmin={usuario.rol === "Administrador"} />} />
+        </Routes>
       </div>
 
       <footer className="main-footer">

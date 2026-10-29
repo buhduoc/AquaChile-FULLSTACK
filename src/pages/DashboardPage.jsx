@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
 import IndicadorCard from "../components/IndicadorCard";
 import SolicitudesPanel from "../components/SolicitudesPanel";
 import Calendario from "../components/Calendario";
@@ -11,6 +12,9 @@ import SolicitudesCuentaPanel from "../components/SolicitudesCuentaPanel";
 import { leerSolicitudesCuenta, resolverSolicitudCuenta } from "../auth";
 import { useAlmacenLocal } from "../useAlmacenLocal";
 import { hoyClave } from "../fechas";
+import { calcularIndicadores, cambiarEstadoSolicitud, existeCorreo } from "../logica";
+
+const VISTAS = ["inicio", "indicadores", "candidatos", "solicitudes"];
 
 const candidatosIniciales = [
   {
@@ -76,12 +80,14 @@ const solicitudesIniciales = [
   },
 ];
 
-function DashboardPage({ vista, esAdmin }) {
-  
+function DashboardPage({ esAdmin }) {
+  // La sección que se muestra viene de la URL (/inicio, /candidatos, ...)
+  const { vista } = useParams();
+
   const [candidatos, setCandidatos] = useAlmacenLocal("vcm-candidatos", candidatosIniciales);
   const [solicitudes, setSolicitudes] = useAlmacenLocal("vcm-solicitudes", solicitudesIniciales);
   const [solicitudesCuenta, setSolicitudesCuenta] = useState(leerSolicitudesCuenta);
-  
+
   const [diaElegido, setDiaElegido] = useState(() => {
     const hoy = hoyClave();
     if (solicitudes.some((s) => s.fechaSolicitud === hoy)) {
@@ -98,36 +104,11 @@ function DashboardPage({ vista, esAdmin }) {
     return conteos;
   }, [solicitudes]);
 
-  // Los indicadores se calculan desde las solicitudes en lugar de escribir
+  // Los indicadores se calculan desde las listas en lugar de escribir
   // manualmente sus valores. Así se actualizan al crear o cambiar registros.
   const indicadores = useMemo(
-    () => [
-      {
-        id: "candidatos",
-        valor: candidatos.length,
-        titulo: "Candidatos registrados",
-        color: "celeste",
-      },
-      {
-        id: "pendientes",
-        valor: solicitudes.filter((solicitud) => solicitud.estado === "Pendiente").length,
-        titulo: "Solicitudes pendientes",
-        color: "amarillo",
-      },
-      {
-        id: "en-proceso",
-        valor: solicitudes.filter((solicitud) => solicitud.estado === "En proceso").length,
-        titulo: "Solicitudes en proceso",
-        color: "azul",
-      },
-      {
-        id: "finalizadas",
-        valor: solicitudes.filter((solicitud) => solicitud.estado === "Finalizada").length,
-        titulo: "Evaluaciones finalizadas",
-        color: "verde",
-      },
-    ],
-    [candidatos.length, solicitudes],
+    () => calcularIndicadores(candidatos, solicitudes),
+    [candidatos, solicitudes],
   );
 
   const candidatosConEstado = useMemo(
@@ -150,7 +131,7 @@ function DashboardPage({ vista, esAdmin }) {
 
   function handleNuevoCandidato(datos) {
     const correo = datos.correo.trim();
-    if (candidatos.some((c) => c.correo.toLowerCase() === correo.toLowerCase())) {
+    if (existeCorreo(candidatos, correo)) {
       return { ok: false, error: "Ya existe un candidato con ese correo." };
     }
 
@@ -198,13 +179,12 @@ function DashboardPage({ vista, esAdmin }) {
   }
 
   function handleCambiarEstado(solicitudId, nuevoEstado) {
-    setSolicitudes((solicitudesActuales) =>
-      solicitudesActuales.map((solicitud) =>
-        solicitud.id === solicitudId
-          ? { ...solicitud, estado: nuevoEstado }
-          : solicitud,
-      ),
-    );
+    setSolicitudes((actuales) => cambiarEstadoSolicitud(actuales, solicitudId, nuevoEstado));
+  }
+
+  // Si la URL no es una sección válida (ej. /cualquiera), vuelve al inicio.
+  if (!VISTAS.includes(vista)) {
+    return <Navigate to="/inicio" replace />;
   }
 
   const tarjetas = (

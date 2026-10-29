@@ -2,6 +2,7 @@ import { useState } from "react";
 import BarrasEstado from "./BarrasEstado";
 import Icon from "./Icon";
 import { claveFecha } from "../fechas";
+import { filtrarCandidatos, validarCandidato } from "../logica";
 
 const FORMULARIO_VACIO = { nombre: "", correo: "", cargo: "", familiaCargo: "" };
 const ESTADOS = ["Pendiente", "En proceso", "Finalizada", "Sin solicitud"];
@@ -45,13 +46,7 @@ function CandidatosPanel({ candidatos, solicitudes, onNuevoCandidato }) {
 
   const sinSolicitud = candidatos.filter((c) => c.estado === "Sin solicitud").length;
 
-  const termino = busqueda.trim().toLocaleLowerCase("es");
-  const filtrados = candidatos.filter((c) => {
-    const coincideTexto = [c.nombre, c.correo, c.cargo, c.familiaCargo].some((valor) =>
-      (valor ?? "").toLocaleLowerCase("es").includes(termino),
-    );
-    return coincideTexto && (!filtroEstado || c.estado === filtroEstado);
-  });
+  const filtrados = filtrarCandidatos(candidatos, busqueda, filtroEstado);
 
   function actualizarCampo(evento) {
     const { name, value } = evento.target;
@@ -62,13 +57,10 @@ function CandidatosPanel({ candidatos, solicitudes, onNuevoCandidato }) {
   function enviar(evento) {
     evento.preventDefault();
 
-    const { nombre, correo, cargo, familiaCargo } = formulario;
-    if (!nombre.trim() || !correo.trim() || !cargo.trim() || !familiaCargo.trim()) {
-      setError("Completa todos los campos.");
-      return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(correo.trim())) {
-      setError("Ingresa un correo válido.");
+    const { nombre } = formulario;
+    const errorFormulario = validarCandidato(formulario);
+    if (errorFormulario) {
+      setError(errorFormulario);
       return;
     }
 

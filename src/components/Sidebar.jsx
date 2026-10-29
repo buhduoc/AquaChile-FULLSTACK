@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import Icon from "./Icon";
 
 const ENLACES = [
@@ -7,7 +8,7 @@ const ENLACES = [
   { id: "solicitudes", texto: "Solicitudes" },
 ];
 
-function Sidebar({ usuario, vista, onCambiarVista, onCerrarSesion }) {
+function Sidebar({ usuario, onNavegar, onCerrarSesion }) {
   const [panelAbierto, setPanelAbierto] = useState(true);
 
   return (
@@ -28,14 +29,14 @@ function Sidebar({ usuario, vista, onCambiarVista, onCerrarSesion }) {
 
       <ul className="sidebar-menu">
         <li>
-          <button
-            type="button"
-            className={`sidebar-link ${vista === "inicio" ? "activo" : ""}`}
-            onClick={() => onCambiarVista("inicio")}
+          <NavLink
+            to="/inicio"
+            className={({ isActive }) => `sidebar-link ${isActive ? "activo" : ""}`}
+            onClick={onNavegar}
           >
             <Icon nombre="home" size={15} />
             <span className="flex-grow-1 text-start">Inicio</span>
-          </button>
+          </NavLink>
         </li>
 
         <li>
@@ -58,14 +59,14 @@ function Sidebar({ usuario, vista, onCambiarVista, onCerrarSesion }) {
             <ul className="sidebar-submenu">
               {ENLACES.map((enlace) => (
                 <li key={enlace.id}>
-                  <button
-                    type="button"
-                    className={vista === enlace.id ? "activo" : ""}
-                    onClick={() => onCambiarVista(enlace.id)}
+                  <NavLink
+                    to={`/${enlace.id}`}
+                    className={({ isActive }) => (isActive ? "activo" : "")}
+                    onClick={onNavegar}
                   >
                     <Icon nombre="circle" size={10} />
                     {enlace.texto}
-                  </button>
+                  </NavLink>
                 </li>
               ))}
             </ul>
@@ -73,14 +74,14 @@ function Sidebar({ usuario, vista, onCambiarVista, onCerrarSesion }) {
         </li>
 
         <li>
-          <button
-            type="button"
-            className={`sidebar-link ${vista === "opciones" ? "activo" : ""}`}
-            onClick={() => onCambiarVista("opciones")}
+          <NavLink
+            to="/opciones"
+            className={({ isActive }) => `sidebar-link ${isActive ? "activo" : ""}`}
+            onClick={onNavegar}
           >
             <Icon nombre="opciones" size={15} />
             <span className="flex-grow-1 text-start">Opciones</span>
-          </button>
+          </NavLink>
         </li>
 
         <li>

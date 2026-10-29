@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import Icon from "./Icon";
-
-const ESTADOS = ["Pendiente", "En proceso", "Finalizada"];
+import { ESTADOS_SOLICITUD as ESTADOS, filtrarSolicitudes, validarSolicitud } from "../logica";
 
 function claseEstado(estado) {
   switch (estado) {
@@ -34,21 +33,10 @@ function SolicitudesPanel({
     responsable: "",
   });
 
-  const solicitudesFiltradas = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase("es");
-
-    return solicitudes.filter((solicitud) => {
-      const coincideTexto = [
-        solicitud.candidato,
-        solicitud.cargo,
-        solicitud.familiaCargo,
-        solicitud.responsable,
-      ].some((valor) => (valor ?? "").toLocaleLowerCase("es").includes(termino));
-
-      const coincideEstado = !filtroEstado || solicitud.estado === filtroEstado;
-      return coincideTexto && coincideEstado;
-    });
-  }, [solicitudes, busqueda, filtroEstado]);
+  const solicitudesFiltradas = useMemo(
+    () => filtrarSolicitudes(solicitudes, busqueda, filtroEstado),
+    [solicitudes, busqueda, filtroEstado],
+  );
 
   function actualizarCampo(evento) {
     const { name, value } = evento.target;
@@ -75,8 +63,9 @@ function SolicitudesPanel({
   function enviarFormulario(evento) {
     evento.preventDefault();
 
-    if (!formulario.candidatoId || !formulario.cargo.trim() || !formulario.familiaCargo.trim() || !formulario.responsable.trim()) {
-      setMensaje("Completa todos los campos para crear la solicitud.");
+    const errorFormulario = validarSolicitud(formulario);
+    if (errorFormulario) {
+      setMensaje(errorFormulario);
       return;
     }
 
