@@ -2,12 +2,6 @@ package cl.aquachile.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class AquachileBackendApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(AquachileBackendApplication.class, args);
-	}
-
+@SpringBootApplication public class AquachileBackendApplication {
+ public static void main(String[] args){SpringApplication.run(AquachileBackendApplication.class,args);}
 }
