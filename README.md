@@ -95,10 +95,10 @@ La aplicación permite configurar una clave de IA en el backend. **Antes de inic
 
 ```powershell
 $env:OPENAI_API_KEY = "TU_CLAVE_PERSONAL"
-$env:OPENAI_MODEL = "gpt-4.1-mini"
+$env:GROQ_MODEL="openai/gpt-oss-20b"
 ```
 
-El proveedor y modelo deben coincidir con el servicio de IA realmente configurado en el backend. Sin una clave válida, el análisis externo puede no funcionar aunque las demás pantallas sí funcionen. Nunca subir claves de API al repositorio ni utilizar CV con datos personales reales en una demostración.
+El proveedor y modelo deben coincidir con el servicio de IA realmente configurado en el backend. Sin una clave válida, el análisis externo puede no funcionar aunque las demás pantallas sí funcionen. Nunca subir claves de API al repositorio ni utilizar CV con datos personales reales en una demostracion, en este caso se usa GROQ.
 
 ## 7. Datos de ejemplo y demostración
 
